@@ -1,54 +1,54 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { hexToHsv, hsvToHex } from '@/lib/colorUtils'
+import { useState, useEffect } from "react";
+import { hexToHsv, hsvToHex } from "@/lib/colorUtils";
 
 export default function PaletteGenerator({ baseHex }: any) {
-  console.log('baseHex', baseHex)
-  const [shadow, setShadow] = useState(0.2)
-  const [highlight, setHighlight] = useState(0.2)
-  const [saturation, setSaturation] = useState(0)
+  console.log("baseHex", baseHex);
+  const [shadow, setShadow] = useState(0.2);
+  const [highlight, setHighlight] = useState(0.2);
+  const [saturation, setSaturation] = useState(0);
 
-  const [palette, setPalette] = useState<any[]>([])
+  const [palette, setPalette] = useState<any[]>([]);
 
   useEffect(() => {
-    generate()
-  }, [shadow, highlight, saturation, baseHex])
+    generate();
+  }, [shadow, highlight, saturation, baseHex]);
 
   const generate = () => {
-    const { h, s, v } = hexToHsv(baseHex)
+    const { h, s, v } = hexToHsv(baseHex);
 
     const newPalette = [
       {
-        name: 'ベース',
-        hex: baseHex
+        name: "ベース",
+        hex: baseHex,
       },
       {
-        name: '影',
+        name: "影",
         hex: hsvToHex(
           h,
           Math.min(s + 0.1 + saturation, 1),
-          Math.max(v - shadow, 0)
-        )
+          Math.max(v - shadow, 0),
+        ),
       },
       {
-        name: 'ハイライト',
+        name: "ハイライト",
         hex: hsvToHex(
           h,
           Math.max(s - 0.1 + saturation, 0),
-          Math.min(v + highlight, 1)
-        )
-      }
-    ]
+          Math.min(v + highlight, 1),
+        ),
+      },
+    ];
 
-    setPalette(newPalette)
-  }
+    setPalette(newPalette);
+  };
 
   return (
     <div className="space-y-4">
       {/* プレビュー */}
       <div className="grid grid-cols-3 gap-2">
-        {palette.map(c => (
+        {palette.map((c) => (
           <div
             key={c.name}
             className="p-3 rounded text-white text-sm"
@@ -99,5 +99,5 @@ export default function PaletteGenerator({ baseHex }: any) {
         />
       </div>
     </div>
-  )
+  );
 }

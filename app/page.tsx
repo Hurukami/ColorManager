@@ -31,8 +31,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchGroups();
-  }, [currentProjectId])
-
+  }, [currentProjectId]);
 
   useEffect(() => {
     if (currentProjectId) {
@@ -63,18 +62,26 @@ export default function Home() {
   };
   // カラー関連の関数
   const fetchTags = async () => {
-    const { data } = await supabase.from("tags").select("*").eq("project_id", currentProjectId).order('sort_order', { ascending: true });
+    const { data } = await supabase
+      .from("tags")
+      .select("*")
+      .eq("project_id", currentProjectId)
+      .order("sort_order", { ascending: true });
     setTags(data || []);
   };
   const fetchColors = async (tagId?: string) => {
-    let query = supabase.from("colors").select(`
+    let query = supabase
+      .from("colors")
+      .select(
+        `
       *,
       color_tags (
         tags (*)
       )
-    `)
-    .eq("project_id", currentProjectId)
-    .eq("group_id", currentGroupId);
+    `,
+      )
+      .eq("project_id", currentProjectId)
+      .eq("group_id", currentGroupId);
 
     if (tagId) {
       query = query.eq("color_tags.tag_id", tagId);
@@ -86,7 +93,7 @@ export default function Home() {
   const deleteColor = async (id: string) => {
     await supabase.from("colors").delete().eq("id", id);
     fetchColors(selectedTag || undefined);
-  }
+  };
 
   const handleFilter = (tagId: string | null) => {
     setSelectedTag(tagId);
@@ -94,11 +101,14 @@ export default function Home() {
   };
 
   const fetchGroups = async () => {
-    const { data } = await supabase.from("color_groups").select("*").eq("project_id", currentProjectId);
+    const { data } = await supabase
+      .from("color_groups")
+      .select("*")
+      .eq("project_id", currentProjectId);
     setGroups(data || []);
-    if(data?.length) setCurrentGroupId(data[0].id);
-  }
-  
+    if (data?.length) setCurrentGroupId(data[0].id);
+  };
+
   const createGroup = async (name: string) => {
     const { data } = await supabase
       .from("color_groups")
@@ -106,44 +116,44 @@ export default function Home() {
       .select()
       .single();
 
-      if(data){
-        setGroups((prev) => [...prev, data]);
-        setCurrentGroupId(data.id);
-      }
-  }
+    if (data) {
+      setGroups((prev) => [...prev, data]);
+      setCurrentGroupId(data.id);
+    }
+  };
 
-  const saveOrder = async(newColors: any[]) => {
+  const saveOrder = async (newColors: any[]) => {
     const updates = newColors.map((color, index) => ({
       id: color.id,
       order: index,
-    }))
+    }));
 
-    for(const u of updates){
+    for (const u of updates) {
       await supabase.from("colors").update({ order: u.order }).eq("id", u.id);
     }
-  }
+  };
 
   return (
     <div className="flex">
       {/* サイドバー */}
-        <ProjectSidebar
-          projects={projects}
-          currentProjectId={currentProjectId}
-          onCreateProject={createProject}
-          onSelectProject={setCurrentProjectId}
-        />
-        <GroupSidebar
-          groups={groups}
-          currentGroupId={currentGroupId}
-          onSelectGroup={setCurrentGroupId}
-          onCreateGroup={createGroup}
-        />
+      <ProjectSidebar
+        projects={projects}
+        currentProjectId={currentProjectId}
+        onCreateProject={createProject}
+        onSelectProject={setCurrentProjectId}
+      />
+      <GroupSidebar
+        groups={groups}
+        currentGroupId={currentGroupId}
+        onSelectGroup={setCurrentGroupId}
+        onCreateGroup={createGroup}
+      />
 
       <main className="p-6 max-w-6xl mx-auto">
         {/* ヘッダー */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">🎨 カラーパレット</h1>
-  
+
           <button
             onClick={() => setOpen(true)}
             className="bg-black text-white px-4 py-2 rounded-xl shadow hover:opacity-80"

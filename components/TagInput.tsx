@@ -1,32 +1,28 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 
-export default function TagInput({
-  tags,
-  selectedTags,
-  setSelectedTags
-}: any) {
-  const [input, setInput] = useState('')
+export default function TagInput({ tags, selectedTags, setSelectedTags }: any) {
+  const [input, setInput] = useState("");
 
   const addTag = (tag: any) => {
     if (!selectedTags.find((t: any) => t.id === tag.id)) {
-      setSelectedTags([...selectedTags, tag])
+      setSelectedTags([...selectedTags, tag]);
     }
-  }
+  };
 
   const createTag = () => {
-    if (!input.trim()) return
+    if (!input.trim()) return;
 
     const newTag = {
-      id: 'new-' + input,
+      id: "new-" + input,
       name: input,
-      isNew: true
-    }
+      isNew: true,
+    };
 
-    setSelectedTags([...selectedTags, newTag])
-    setInput('')
-  }
+    setSelectedTags([...selectedTags, newTag]);
+    setInput("");
+  };
 
   return (
     <div>
@@ -47,8 +43,8 @@ export default function TagInput({
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            createTag()
+          if (e.key === "Enter") {
+            createTag();
           }
         }}
         placeholder="タグを入力してEnter"
@@ -59,7 +55,7 @@ export default function TagInput({
       <div className="flex flex-wrap gap-2 mt-2">
         {tags
           .filter((t: any) =>
-            t.name.toLowerCase().includes(input.toLowerCase())
+            t.name.toLowerCase().includes(input.toLowerCase()),
           )
           .map((tag: any) => (
             <button
@@ -72,5 +68,5 @@ export default function TagInput({
           ))}
       </div>
     </div>
-  )
+  );
 }
