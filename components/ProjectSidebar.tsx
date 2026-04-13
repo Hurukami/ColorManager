@@ -11,7 +11,10 @@ export default function ProjectSidebar({
   const [newProjectName, setNewProjectName] = useState("");
 
   return (
-    <div className="w-64 bg-gray-100 h-screen p-4 flex flex-col">
+    <div
+      className="
+            w-full md:w-64 h-auto md:h-screen flex md:block overflow-x-auto"
+    >
       <h2 className="text-xl font-bold mb-4">Projects</h2>
       <div className="flex-1 overflow-y-auto">
         {projects.map((project: any) => (

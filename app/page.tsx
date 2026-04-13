@@ -7,6 +7,8 @@ import AddColorModal from "@/components/AddColorModal";
 import EditColorModal from "@/components/EditColorModal";
 import GroupSidebar from "@/components/GroupSidebar";
 import SortableColorList from "@/components/SortableColorList";
+import DesktopLayout from "@/components/DesktopLayout";
+import MobileLayout from "@/components/MobileLayout";
 
 export default function Home() {
   // プロジェクト関連の状態
@@ -134,65 +136,38 @@ export default function Home() {
   };
 
   return (
-    <div className="flex">
-      {/* サイドバー */}
-      <ProjectSidebar
-        projects={projects}
-        currentProjectId={currentProjectId}
-        onCreateProject={createProject}
-        onSelectProject={setCurrentProjectId}
-      />
-      <GroupSidebar
-        groups={groups}
-        currentGroupId={currentGroupId}
-        onSelectGroup={setCurrentGroupId}
-        onCreateGroup={createGroup}
-      />
-
-      <main className="p-6 max-w-6xl mx-auto">
-        {/* ヘッダー */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">🎨 カラーパレット</h1>
-
-          <button
-            onClick={() => setOpen(true)}
-            className="bg-black text-white px-4 py-2 rounded-xl shadow hover:opacity-80"
-          >
-            + 色を追加
-          </button>
-        </div>
-        {/* タグフィルタ */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          <button
-            onClick={() => handleFilter(null)}
-            className={`px-3 py-1 rounded-full text-sm border ${
-              selectedTag === null ? "bg-black text-white" : ""
-            }`}
-          >
-            すべて
-          </button>
-
-          {tags.map((tag) => (
-            <button
-              key={tag.id}
-              onClick={() => handleFilter(tag.id)}
-              className={`px-3 py-1 rounded-full text-sm border ${
-                selectedTag === tag.id ? "ring-2 ring-black" : ""
-              }`}
-              style={{ backgroundColor: tag.color || "#eee" }}
-            >
-              {tag.name}
-            </button>
-          ))}
-        </div>
-        <SortableColorList
+    <div>
+      <div className="hidden md:block">
+        <DesktopLayout
+          projects={projects}
+          currentProjectId={currentProjectId}
+          setCurrentProjectId={setCurrentProjectId}
+          groups={groups}
+          currentGroupId={currentGroupId}
+          setCurrentGroupId={setCurrentGroupId}
           colors={colors}
           setColors={setColors}
-          onEdit={setEditingColor}
-          onSave={saveOrder}
-          deleteColor={deleteColor}
-        />
-      </main>
+          setEditingColor={setEditingColor}
+          saveOrder={saveOrder}
+          setOpen={setOpen}
+        ></DesktopLayout>
+      </div>
+      <div className="block md:hidden">
+        <MobileLayout
+          projects={projects}
+          currentProjectId={currentProjectId}
+          setCurrentProjectId={setCurrentProjectId}
+          groups={groups}
+          currentGroupId={currentGroupId}
+          setCurrentGroupId={setCurrentGroupId}
+          colors={colors}
+          setColors={setColors}
+          setEditingColor={setEditingColor}
+          saveOrder={saveOrder}
+          setOpen={setOpen}
+        ></MobileLayout>
+      </div>
+
       {/* モーダル */}
       {open && (
         <AddColorModal

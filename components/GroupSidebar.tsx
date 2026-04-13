@@ -10,7 +10,7 @@ export default function GroupSidebar({
 }: any) {
   const [newGroupName, setNewGroupName] = useState("");
   return (
-    <div className="w-48 bg-gray-50 p-4 border-r">
+    <div className="w-full md:w-48 flex md:block overflow-x-auto">
       <h3 className="text-lg font-bold mb-4">Groups</h3>
       {groups.map((group: any) => (
         <div
