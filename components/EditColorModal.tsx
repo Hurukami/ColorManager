@@ -5,6 +5,18 @@ import { createClient } from "@/util/supabase/client";
 import ColorPicker from "./ColorPicker";
 import PaletteGenerator from "./PaletteGenerator";
 import { generatePalette } from "@/lib/generatePalette";
+import TagInput from "./TagInput";
+import { Color, Group, Tag } from "@/types/color";
+
+type Props = {
+  color: Color;
+  groups: Group[];
+  tags: Tag[];
+  onClose: () => void;
+  onUpdated: () => void;
+  projectId: string | null;
+  deleteColor: (id: string) => void;
+};
 
 export default function EditColorModal({
   color,
@@ -13,12 +25,12 @@ export default function EditColorModal({
   onClose,
   onUpdated,
   projectId,
-}: any) {
-  console.log(color);
+  deleteColor,
+}: Props) {
   const [name, setName] = useState(color.name || "");
   const [hex, setHex] = useState(color.hex || "#ffffff");
   const [selectedTags, setSelectedTags] = useState<string[]>(
-    color.color_tags?.map((ct: any) => ct.tags.id) || [],
+    color.color_tags?.map((ct: any) => ct.tags.name) || [],
   );
   const [groupId, setGroupId] = useState<string>(color.group_id || "");
   const [generatedColors, setGeneratedColors] = useState<any[]>([]);
@@ -43,7 +55,7 @@ export default function EditColorModal({
         r,
         g,
         b,
-        project_id: projectId,
+        project_id: projectId || null,
         group_id: groupId || null,
       })
       .eq("id", color.id);
@@ -60,7 +72,6 @@ export default function EditColorModal({
 
     onUpdated();
   };
-
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
       <div className="bg-white rounded-2xl p-6 w-96 shadow-xl">
@@ -128,9 +139,9 @@ export default function EditColorModal({
           {tags.map((tag: any) => (
             <button
               key={tag.id}
-              onClick={() => toggleTag(tag.id)}
+              onClick={() => toggleTag(tag.name)}
               className={`px-3 py-1 rounded-full text-sm border ${
-                selectedTags.includes(tag.id) ? "bg-black text-white" : ""
+                selectedTags.includes(tag.name) ? "bg-black text-white" : ""
               }`}
             >
               {tag.name}
@@ -145,6 +156,12 @@ export default function EditColorModal({
             className="bg-black text-white px-4 py-2 rounded"
           >
             保存
+          </button>
+          <button
+            onClick={() => deleteColor(color.id)}
+            className="bg-red-500 text-white px-4 py-2 rounded"
+          >
+            削除
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Color } from "@/types/color";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 
 import {
@@ -11,7 +12,13 @@ import {
 
 import { CSS } from "@dnd-kit/utilities";
 
-function SortableItem({ color, onEdit, deleteColor }: any) {
+function SortableItem({
+  color,
+  onEdit,
+}: {
+  color: Color;
+  onEdit: (color: Color) => void;
+}) {
   const {
     attributes,
     listeners,
@@ -24,7 +31,7 @@ function SortableItem({ color, onEdit, deleteColor }: any) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    backgroundColor: color.hex,
+    backgroundColor: color.hex!,
     opacity: isDragging ? 0.5 : 1,
     scale: isDragging ? 1.03 : 1,
   };
@@ -42,15 +49,6 @@ function SortableItem({ color, onEdit, deleteColor }: any) {
       >
         ☰
       </div>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          deleteColor(color.id);
-        }}
-        className="text-white absolute top-2 left-2 text-white bg-red-500 px-2 py-1 rounded opacity-100 group-hover:opacity-100 text-xs"
-      >
-        削除
-      </button>
       {/*コピーアイコン*/}
       <button
         onClick={(e) => {
@@ -85,13 +83,17 @@ export default function SortableColorList({
   setColors,
   onEdit,
   onSave,
-  deleteColor,
-}: any) {
+}: {
+  colors: Color[];
+  setColors: React.Dispatch<React.SetStateAction<Color[]>>;
+  onEdit: (color: Color) => void;
+  onSave: (newColors: Color[]) => void;
+}) {
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
     if (active.id !== over.id) {
-      const oldIndex = colors.findIndex((c: any) => c.id === active.id);
-      const newIndex = colors.findIndex((c: any) => c.id === over.id);
+      const oldIndex = colors.findIndex((c: Color) => c.id === active.id);
+      const newIndex = colors.findIndex((c: Color) => c.id === over.id);
       const newColors = arrayMove(colors, oldIndex, newIndex);
       setColors(newColors);
       onSave(newColors);
@@ -100,17 +102,12 @@ export default function SortableColorList({
   return (
     <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext
-        items={colors.map((color: any) => color.id)}
+        items={colors.map((color: Color) => color.id)}
         strategy={verticalListSortingStrategy}
       >
         <div className="grid grid-cols-4 gap-4">
-          {colors.map((color: any) => (
-            <SortableItem
-              key={color.id}
-              color={color}
-              onEdit={onEdit}
-              deleteColor={deleteColor}
-            />
+          {colors.map((color: Color) => (
+            <SortableItem key={color.id} color={color} onEdit={onEdit} />
           ))}
         </div>
       </SortableContext>

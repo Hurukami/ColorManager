@@ -1,20 +1,55 @@
 "use client";
 
+import { Color, Group, Project, Tag } from "@/types/color";
 import SortableColorList from "./SortableColorList";
+import { useState } from "react";
+import ColorBottomSheet from "./ColorBottomSheet";
+
+type Props = {
+  projects: Project[];
+  currentProjectId: string | null;
+  setCurrentProjectId: (id: string) => void;
+  createProject: (name: string) => void;
+  groups: Group[];
+  currentGroupId: string | null;
+  setCurrentGroupId: (id: string) => void;
+  createGroup: (name: string) => void;
+  colors: Color[];
+  setColors: React.Dispatch<React.SetStateAction<Color[]>>;
+  saveOrder: (colors: Color[]) => void;
+  fetchColors: (tagId?: string) => void;
+  tags: Tag[];
+  selectedTag: string | null;
+  handleFilter: (tagId: string | null) => void;
+  deleteColor: (id: string) => void;
+};
 
 export default function MobileLayout({
   projects,
   currentProjectId,
   setCurrentProjectId,
+  createProject,
   groups,
   currentGroupId,
   setCurrentGroupId,
+  createGroup,
   colors,
   setColors,
-  setEditingColor,
   saveOrder,
-  setOpen,
-}: any) {
+  fetchColors,
+  tags,
+  selectedTag,
+  handleFilter,
+  deleteColor,
+}: Props) {
+  const [open, setOpen] = useState(false);
+  const [editingColor, setEditingColor] = useState<Color | null>(null);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [newGroupName, setNewGroupName] = useState("");
+  const editColor = (color: Color) => {
+    setEditingColor(color);
+    setOpen(true);
+  };
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* ヘッダー */}
@@ -54,11 +89,22 @@ export default function MobileLayout({
         <SortableColorList
           colors={colors}
           setColors={setColors}
-          onEdit={setEditingColor}
+          onEdit={editColor}
           onSave={saveOrder}
         />
       </main>
-
+      <ColorBottomSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        tags={tags}
+        groups={groups}
+        projectId={currentProjectId}
+        onSubmit={() => {
+          setOpen(false);
+          fetchColors(selectedTag || undefined);
+        }}
+        initialColor={editingColor}
+      ></ColorBottomSheet>
       {/* FAB */}
       <button
         onClick={() => setOpen(true)}

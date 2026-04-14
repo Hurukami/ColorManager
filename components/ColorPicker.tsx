@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 
-export default function ColorPicker({ value, onChange }: any) {
+type Props = {
+  value: string;
+  onChange: (color: string) => void;
+};
+
+export default function ColorPicker({ value, onChange }: Props) {
   const [color, setColor] = useState(value);
 
   useEffect(() => {

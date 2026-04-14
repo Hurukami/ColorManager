@@ -2,29 +2,23 @@
 
 import { use, useEffect, useState } from "react";
 import { createClient } from "@/util/supabase/client";
-import ProjectSidebar from "@/components/ProjectSidebar";
-import AddColorModal from "@/components/AddColorModal";
-import EditColorModal from "@/components/EditColorModal";
-import GroupSidebar from "@/components/GroupSidebar";
-import SortableColorList from "@/components/SortableColorList";
 import DesktopLayout from "@/components/DesktopLayout";
 import MobileLayout from "@/components/MobileLayout";
+import { Color, Group, Project, Tag } from "@/types/color";
 
 export default function Home() {
   // プロジェクト関連の状態
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   // カラー関連の状態
-  const [colors, setColors] = useState<any[]>([]);
-  const [tags, setTags] = useState<any[]>([]);
+  const [colors, setColors] = useState<Color[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   // グループ関連の状態
-  const [groups, setGroups] = useState<any[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [currentGroupId, setCurrentGroupId] = useState<string | null>(null);
 
-  const [open, setOpen] = useState(false);
-  const [editingColor, setEditingColor] = useState<any | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -67,8 +61,7 @@ export default function Home() {
     const { data } = await supabase
       .from("tags")
       .select("*")
-      .eq("project_id", currentProjectId)
-      .order("sort_order", { ascending: true });
+      .eq("project_id", currentProjectId);
     setTags(data || []);
   };
   const fetchColors = async (tagId?: string) => {
@@ -124,7 +117,7 @@ export default function Home() {
     }
   };
 
-  const saveOrder = async (newColors: any[]) => {
+  const saveOrder = async (newColors: Color[]) => {
     const updates = newColors.map((color, index) => ({
       id: color.id,
       order: index,
@@ -134,7 +127,6 @@ export default function Home() {
       await supabase.from("colors").update({ order: u.order }).eq("id", u.id);
     }
   };
-
   return (
     <div>
       <div className="hidden md:block">
@@ -142,14 +134,19 @@ export default function Home() {
           projects={projects}
           currentProjectId={currentProjectId}
           setCurrentProjectId={setCurrentProjectId}
+          createProject={createProject}
           groups={groups}
           currentGroupId={currentGroupId}
           setCurrentGroupId={setCurrentGroupId}
+          createGroup={createGroup}
           colors={colors}
           setColors={setColors}
-          setEditingColor={setEditingColor}
           saveOrder={saveOrder}
-          setOpen={setOpen}
+          fetchColors={fetchColors}
+          tags={tags}
+          selectedTag={selectedTag}
+          handleFilter={handleFilter}
+          deleteColor={deleteColor}
         ></DesktopLayout>
       </div>
       <div className="block md:hidden">
@@ -157,43 +154,21 @@ export default function Home() {
           projects={projects}
           currentProjectId={currentProjectId}
           setCurrentProjectId={setCurrentProjectId}
+          createProject={createProject}
           groups={groups}
           currentGroupId={currentGroupId}
           setCurrentGroupId={setCurrentGroupId}
+          createGroup={createGroup}
           colors={colors}
           setColors={setColors}
-          setEditingColor={setEditingColor}
           saveOrder={saveOrder}
-          setOpen={setOpen}
+          fetchColors={fetchColors}
+          tags={tags}
+          selectedTag={selectedTag}
+          handleFilter={handleFilter}
+          deleteColor={deleteColor}
         ></MobileLayout>
       </div>
-
-      {/* モーダル */}
-      {open && (
-        <AddColorModal
-          tags={tags}
-          groups={groups}
-          onClose={() => setOpen(false)}
-          onAdded={() => {
-            setOpen(false);
-            fetchColors(selectedTag || undefined);
-          }}
-          projectId={currentProjectId}
-        />
-      )}
-      {editingColor && (
-        <EditColorModal
-          color={editingColor}
-          groups={groups}
-          tags={tags}
-          onClose={() => setEditingColor(null)}
-          onUpdated={() => {
-            setEditingColor(null);
-            fetchColors(selectedTag || undefined);
-          }}
-          projectId={currentProjectId}
-        />
-      )}
     </div>
   );
 }
