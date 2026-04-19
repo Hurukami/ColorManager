@@ -104,6 +104,7 @@ export default function MobileLayout({
           fetchColors(selectedTag || undefined);
         }}
         initialColor={editingColor}
+        colorDelete={deleteColor}
       ></ColorBottomSheet>
       {/* FAB */}
       <button

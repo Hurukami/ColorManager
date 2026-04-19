@@ -14,8 +14,9 @@ type Props = {
   tags: Tag[];
   groups: Group[];
   projectId: string | null;
-  initialColor?: Color | null;
+  initialColor: Color | null;
   onSubmit: () => void;
+  colorDelete?: (id: string) => void;
 };
 
 export default function ColorModal({ open, onClose, ...props }: Props) {

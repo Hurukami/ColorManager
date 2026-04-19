@@ -1,12 +1,29 @@
 "use client";
 
+import { Tag } from "@/types/color";
 import { useState } from "react";
 
-export default function TagInput({ tags, selectedTags, setSelectedTags }: any) {
-  const [input, setInput] = useState("");
+type Props = {
+  tags: Tag[];
+  selectedTags: Tag[];
+  setSelectedTags: (tags: Tag[] | ((prev: Tag[]) => Tag[])) => void;
+};
 
-  const addTag = (tag: any) => {
-    if (!selectedTags.find((t: any) => t.id === tag.id)) {
+export default function TagInput({
+  tags,
+  selectedTags,
+  setSelectedTags,
+}: Props) {
+  const [input, setInput] = useState("");
+  const toggleTag = (name: string) => {
+    setSelectedTags((prev: Tag[]) =>
+      prev.some((t) => t.name === name)
+        ? prev.filter((t) => t.name !== name)
+        : [...prev, { id: "new-" + name, name }],
+    );
+  };
+  const addTag = (tag: Tag) => {
+    if (!selectedTags.find((t: Tag) => t.id === tag.id)) {
       setSelectedTags([...selectedTags, tag]);
     }
   };
@@ -26,18 +43,6 @@ export default function TagInput({ tags, selectedTags, setSelectedTags }: any) {
 
   return (
     <div>
-      {/* 選択済みタグ */}
-      <div className="flex flex-wrap gap-2 mb-2">
-        {selectedTags.map((tag: any) => (
-          <span
-            key={tag.id}
-            className="px-2 py-1 bg-black text-white rounded-full text-sm"
-          >
-            {tag.name}
-          </span>
-        ))}
-      </div>
-
       {/* 入力 */}
       <input
         value={input}
@@ -52,20 +57,20 @@ export default function TagInput({ tags, selectedTags, setSelectedTags }: any) {
       />
 
       {/* サジェスト */}
-      <div className="flex flex-wrap gap-2 mt-2">
-        {tags
-          .filter((t: any) =>
-            t.name.toLowerCase().includes(input.toLowerCase()),
-          )
-          .map((tag: any) => (
-            <button
-              key={tag.id}
-              onClick={() => addTag(tag)}
-              className="px-2 py-1 border rounded text-sm"
-            >
-              {tag.name}
-            </button>
-          ))}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {tags.map((tag: Tag) => (
+          <button
+            key={tag.id}
+            onClick={() => toggleTag(tag.name)}
+            className={`px-3 py-1 rounded-full text-sm border ${
+              selectedTags.some((t) => t.name === tag.name)
+                ? "bg-black text-white"
+                : ""
+            }`}
+          >
+            {tag.name}
+          </button>
+        ))}
       </div>
     </div>
   );

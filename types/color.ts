@@ -14,7 +14,7 @@ export type Color = {
   b: number;
   group_id?: string;
   color_tags: {
-    tag: Tag;
+    tags: Tag;
   }[];
 };
 

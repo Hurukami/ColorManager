@@ -1,19 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/util/supabase/client";
 import TagInput from "./TagInput";
 import ColorPicker from "./ColorPicker";
 import { generatePalette } from "@/lib/generatePalette";
 import PaletteGenerator from "./PaletteGenerator";
 import { Color, Group, Tag } from "@/types/color";
+import GroupSelectSection from "./GroupSelectSection";
+import PaletteSection from "./PaletteSection";
+import { useColorForm } from "@/hooks/useColorForm";
 
 type Props = {
   tags: Tag[];
   groups: Group[];
   projectId: string | null;
-  initialColor?: Color | null;
+  initialColor: Color | null;
   onSubmit: () => void;
+  colorDelete?: (id: string) => void;
 };
 
 export default function ColorForm({
@@ -22,79 +26,21 @@ export default function ColorForm({
   projectId,
   initialColor,
   onSubmit,
+  colorDelete,
 }: Props) {
-  const [name, setName] = useState(initialColor?.name || "");
-  const [hex, setHex] = useState(initialColor?.hex || "#ff0000");
-  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
-  const [groupId, setGroupId] = useState<string>(initialColor?.group_id || "");
-  const [generatedColors, setGeneratedColors] = useState<
-    { name: string; hex: string }[]
-  >([]);
-
-  const supabase = createClient();
-
-  const handleTags = async () => {
-    const tagIds: string[] = [];
-
-    for (const tag of selectedTags) {
-      if (tag.isNew) {
-        const { data: newTag } = await supabase
-          .from("tags")
-          .insert([{ name: tag.name, project_id: projectId }])
-          .select()
-          .single();
-
-        if (newTag) tagIds.push(newTag.id);
-      } else {
-        tagIds.push(tag.id);
-      }
-    }
-
-    return tagIds;
-  };
-
-  const saveColor = async () => {
-    const tagIds = await handleTags();
-
-    const insertOne = async (hexValue: string) => {
-      const r = parseInt(hexValue.slice(1, 3), 16);
-      const g = parseInt(hexValue.slice(3, 5), 16);
-      const b = parseInt(hexValue.slice(5, 7), 16);
-
-      const { data } = await supabase
-        .from("colors")
-        .insert({
-          name,
-          hex: hexValue,
-          r,
-          g,
-          b,
-          project_id: projectId || null,
-          group_id: groupId || null,
-        })
-        .select()
-        .single();
-
-      if (!data) return;
-
-      await supabase.from("color_tags").insert(
-        tagIds.map((tag_id) => ({
-          color_id: data.id,
-          tag_id,
-        })),
-      );
-    };
-
-    if (generatedColors.length > 0) {
-      for (const c of generatedColors) {
-        await insertOne(c.hex);
-      }
-    } else {
-      await insertOne(hex);
-    }
-
-    onSubmit();
-  };
+  const {
+    name,
+    setName,
+    hex,
+    setHex,
+    groupId,
+    setGroupId,
+    selectedTags,
+    setSelectedTags,
+    generatedColors,
+    setGeneratedColors,
+    save,
+  } = useColorForm(initialColor, projectId, onSubmit);
 
   return (
     <div className="space-y-4">
@@ -104,55 +50,43 @@ export default function ColorForm({
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
-
       <ColorPicker value={hex} onChange={setHex} />
+      <details>
+        <summary>グループを選択</summary>
+        <GroupSelectSection
+          groups={groups}
+          groupId={groupId}
+          setGroupId={setGroupId}
+        />
+      </details>
+      <details>
+        <summary>タグを選択</summary>
+        <TagInput
+          tags={tags}
+          selectedTags={selectedTags}
+          setSelectedTags={setSelectedTags}
+        />
+      </details>
+      <details>
+        <summary>パレットを生成</summary>
 
-      <select
-        value={groupId}
-        onChange={(e) => setGroupId(e.target.value)}
-        className="w-full border p-2 rounded"
-      >
-        <option value="">グループなし</option>
-        {groups.map((group: Group) => (
-          <option key={group.id} value={group.id}>
-            {group.name}
-          </option>
-        ))}
-      </select>
-
-      <TagInput
-        tags={tags}
-        selectedTags={selectedTags}
-        setSelectedTags={setSelectedTags}
-      />
-
-      <button
-        onClick={() => {
-          const palette = generatePalette(hex);
-          setGeneratedColors(palette);
-        }}
-        className="w-full bg-purple-600 text-white px-4 py-2 rounded"
-      >
-        類似色を生成
-      </button>
-
-      {generatedColors.map((color) => (
-        <div key={color.name} className="flex items-center gap-2">
-          <div
-            className="w-6 h-6 rounded-full"
-            style={{ backgroundColor: color.hex }}
-          />
-          <span>{color.name}</span>
-        </div>
-      ))}
-
-      <PaletteGenerator baseHex={hex} />
+        <PaletteGenerator baseHex={hex} />
+      </details>
 
       <button
-        onClick={saveColor}
+        onClick={save}
         className="w-full bg-black text-white py-3 rounded"
       >
         保存
+      </button>
+
+      <button
+        className="w-full bg-red-500 text-white py-3 rounded"
+        onClick={() => {
+          colorDelete && initialColor && colorDelete(initialColor.id);
+        }}
+      >
+        削除
       </button>
     </div>
   );

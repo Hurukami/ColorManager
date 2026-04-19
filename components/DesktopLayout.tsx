@@ -172,6 +172,7 @@ export default function DesktopLayout({
         }}
         initialColor={editingColor}
         projectId={currentProjectId}
+        colorDelete={deleteColor}
       />
     </div>
   );

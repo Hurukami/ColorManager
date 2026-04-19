@@ -83,6 +83,7 @@ export default function Home() {
     }
 
     const { data } = await query;
+    console.log("Fetched colors:", data);
     setColors(data || []);
   };
   const deleteColor = async (id: string) => {
