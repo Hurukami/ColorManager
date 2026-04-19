@@ -13,6 +13,10 @@ export default function ColorPicker({ value, onChange }: Props) {
     onChange(color);
   }, [color]);
 
+  useEffect(() => {
+    setColor(value);
+  }, [value]);
+
   const pickColor = async () => {
     if (!window.EyeDropper) {
       alert("このブラウザはEyeDropper APIに対応していません。");

@@ -3,13 +3,26 @@
 import { useState, useEffect } from "react";
 import { hexToHsv, hsvToHex } from "@/lib/colorUtils";
 
-export default function PaletteGenerator({ baseHex }: any) {
-  console.log("baseHex", baseHex);
+type Props = {
+  baseHex: string;
+  generatedColors?: { name: string; hex: string; tag?: string }[];
+  setGeneratedColors: (
+    c: { name: string; hex: string; tag?: string }[],
+  ) => void;
+};
+
+export default function PaletteGenerator({
+  baseHex,
+  generatedColors,
+  setGeneratedColors,
+}: Props) {
   const [shadow, setShadow] = useState(0.2);
   const [highlight, setHighlight] = useState(0.2);
   const [saturation, setSaturation] = useState(0);
 
-  const [palette, setPalette] = useState<any[]>([]);
+  const [palette, setPalette] = useState<
+    { name: string; hex: string; tag?: string }[]
+  >([]);
 
   useEffect(() => {
     generate();
@@ -30,6 +43,7 @@ export default function PaletteGenerator({ baseHex }: any) {
           Math.min(s + 0.1 + saturation, 1),
           Math.max(v - shadow, 0),
         ),
+        tag: "影",
       },
       {
         name: "ハイライト",
@@ -38,10 +52,12 @@ export default function PaletteGenerator({ baseHex }: any) {
           Math.max(s - 0.1 + saturation, 0),
           Math.min(v + highlight, 1),
         ),
+        tag: "ハイライト",
       },
     ];
 
     setPalette(newPalette);
+    setGeneratedColors(newPalette);
   };
 
   return (

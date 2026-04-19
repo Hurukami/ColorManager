@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/util/supabase/client";
 import DesktopLayout from "@/components/DesktopLayout";
 import MobileLayout from "@/components/MobileLayout";
@@ -19,31 +19,109 @@ export default function Home() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [currentGroupId, setCurrentGroupId] = useState<string | null>(null);
 
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    const loadProjects = async () => {
+      const { data } = await supabase.from("projects").select("*");
+
+      setProjects(data || []);
+      setCurrentProjectId((prev) => prev ?? data?.[0]?.id ?? null);
+    };
+
+    void loadProjects();
+  }, [supabase]);
 
   useEffect(() => {
-    fetchGroups();
-  }, [currentProjectId]);
+    const loadGroups = async () => {
+      if (!currentProjectId) {
+        setGroups([]);
+        setCurrentGroupId(null);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("color_groups")
+        .select("*")
+        .eq("project_id", currentProjectId);
+
+      setGroups(data || []);
+      setCurrentGroupId(data?.[0]?.id ?? null);
+    };
+
+    void loadGroups();
+  }, [currentProjectId, supabase]);
+
+  const fetchColors = useCallback(
+    async (tagId?: string) => {
+      if (!currentProjectId) {
+        setColors([]);
+        return;
+      }
+
+      let query = supabase
+        .from("colors")
+        .select(
+          `
+      *,
+      color_tags (
+        tags (*)
+      )
+    `,
+        )
+        .eq("project_id", currentProjectId);
+
+      if (currentGroupId) {
+        query = query.eq("group_id", currentGroupId);
+      }
+
+      if (tagId) {
+        query = query.eq("color_tags.tag_id", tagId);
+      }
+
+      const { data } = await query;
+      setColors(data || []);
+    },
+    [currentGroupId, currentProjectId, supabase],
+  );
 
   useEffect(() => {
-    if (currentProjectId) {
-      fetchTags();
-      fetchColors();
+    if (!currentProjectId) {
+      return;
     }
-  }, [currentProjectId, currentGroupId]);
+
+    const loadTagsAndColors = async () => {
+      const { data: tagData } = await supabase
+        .from("tags")
+        .select("*")
+        .eq("project_id", currentProjectId);
+
+      let colorQuery = supabase
+        .from("colors")
+        .select(
+          `
+      *,
+      color_tags (
+        tags (*)
+      )
+    `,
+        )
+        .eq("project_id", currentProjectId);
+
+      if (currentGroupId) {
+        colorQuery = colorQuery.eq("group_id", currentGroupId);
+      }
+
+      const { data: colorData } = await colorQuery;
+
+      setTags(tagData || []);
+      setColors(colorData || []);
+    };
+
+    void loadTagsAndColors();
+  }, [currentProjectId, currentGroupId, supabase]);
 
   // プロジェクト関連の関数
-  const fetchProjects = async () => {
-    const { data } = await supabase.from("projects").select("*");
-    setProjects(data || []);
-    if (data?.length && !currentProjectId) {
-      setCurrentProjectId(data[0].id);
-    }
-  };
 
   const createProject = async (name: string) => {
     const { data } = await supabase
@@ -56,53 +134,49 @@ export default function Home() {
       setCurrentProjectId(data.id);
     }
   };
-  // カラー関連の関数
-  const fetchTags = async () => {
-    const { data } = await supabase
-      .from("tags")
-      .select("*")
-      .eq("project_id", currentProjectId);
-    setTags(data || []);
-  };
-  const fetchColors = async (tagId?: string) => {
-    let query = supabase
-      .from("colors")
-      .select(
-        `
-      *,
-      color_tags (
-        tags (*)
-      )
-    `,
-      )
-      .eq("project_id", currentProjectId)
-      .eq("group_id", currentGroupId);
 
-    if (tagId) {
-      query = query.eq("color_tags.tag_id", tagId);
+  const handleProjectDeleted = (deletedProjectId: string) => {
+    const nextProjects = projects.filter(
+      (project) => project.id !== deletedProjectId,
+    );
+
+    setProjects(nextProjects);
+
+    if (currentProjectId !== deletedProjectId) {
+      return;
     }
 
-    const { data } = await query;
-    console.log("Fetched colors:", data);
-    setColors(data || []);
+    setCurrentProjectId(nextProjects[0]?.id ?? null);
+    setCurrentGroupId(null);
+    setGroups([]);
+    setTags([]);
+    setColors([]);
+    setSelectedTag(null);
   };
+
+  const handleGroupDeleted = (deletedGroupId: string) => {
+    const nextGroups = groups.filter((group) => group.id !== deletedGroupId);
+
+    setGroups(nextGroups);
+
+    if (currentGroupId !== deletedGroupId) {
+      return;
+    }
+
+    setCurrentGroupId(nextGroups[0]?.id ?? null);
+    setColors([]);
+    setSelectedTag(null);
+  };
+
+  // カラー関連の関数
   const deleteColor = async (id: string) => {
     await supabase.from("colors").delete().eq("id", id);
-    fetchColors(selectedTag || undefined);
+    await fetchColors(selectedTag || undefined);
   };
 
   const handleFilter = (tagId: string | null) => {
     setSelectedTag(tagId);
-    fetchColors(tagId || undefined);
-  };
-
-  const fetchGroups = async () => {
-    const { data } = await supabase
-      .from("color_groups")
-      .select("*")
-      .eq("project_id", currentProjectId);
-    setGroups(data || []);
-    if (data?.length) setCurrentGroupId(data[0].id);
+    void fetchColors(tagId || undefined);
   };
 
   const createGroup = async (name: string) => {
@@ -148,6 +222,8 @@ export default function Home() {
           selectedTag={selectedTag}
           handleFilter={handleFilter}
           deleteColor={deleteColor}
+          onProjectDeleted={handleProjectDeleted}
+          onGroupDeleted={handleGroupDeleted}
         ></DesktopLayout>
       </div>
       <div className="block md:hidden">
@@ -168,6 +244,8 @@ export default function Home() {
           selectedTag={selectedTag}
           handleFilter={handleFilter}
           deleteColor={deleteColor}
+          onProjectDeleted={handleProjectDeleted}
+          onGroupDeleted={handleGroupDeleted}
         ></MobileLayout>
       </div>
     </div>

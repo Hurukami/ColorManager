@@ -70,7 +70,11 @@ export default function ColorForm({
       <details>
         <summary>パレットを生成</summary>
 
-        <PaletteGenerator baseHex={hex} />
+        <PaletteGenerator
+          baseHex={hex}
+          generatedColors={generatedColors}
+          setGeneratedColors={setGeneratedColors}
+        />
       </details>
 
       <button

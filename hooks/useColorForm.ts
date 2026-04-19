@@ -16,7 +16,7 @@ export function useColorForm(
   const [groupId, setGroupId] = useState("");
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [generatedColors, setGeneratedColors] = useState<
-    { name: string; hex: string }[]
+    { name: string; hex: string; tag?: string }[]
   >([]);
 
   // ⭐ 初期値同期（超重要）
@@ -58,7 +58,45 @@ export function useColorForm(
   const save = async () => {
     const tagIds = await handleTags();
 
-    const insertOne = async (hexValue: string) => {
+    // 編集モード: 既存の色を更新
+    if (initialColor?.id) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+
+      await supabase
+        .from("colors")
+        .update({
+          name,
+          hex,
+          r,
+          g,
+          b,
+          group_id: groupId || null,
+        })
+        .eq("id", initialColor.id);
+
+      // タグ更新（全削除 → 再登録）
+      await supabase
+        .from("color_tags")
+        .delete()
+        .eq("color_id", initialColor.id);
+
+      if (tagIds.length > 0) {
+        await supabase.from("color_tags").insert(
+          tagIds.map((tag_id) => ({
+            color_id: initialColor.id,
+            tag_id,
+          })),
+        );
+      }
+
+      onSubmit();
+      return;
+    }
+
+    // 新規モード: 色を新規作成
+    const insertOne = async (hexValue: string, tag?: string) => {
       const r = parseInt(hexValue.slice(1, 3), 16);
       const g = parseInt(hexValue.slice(3, 5), 16);
       const b = parseInt(hexValue.slice(5, 7), 16);
@@ -79,17 +117,19 @@ export function useColorForm(
 
       if (!data) return;
 
-      await supabase.from("color_tags").insert(
-        tagIds.map((tag_id) => ({
-          color_id: data.id,
-          tag_id,
-        })),
-      );
+      if (tagIds.length > 0) {
+        await supabase.from("color_tags").insert(
+          tagIds.map((tag_id) => ({
+            color_id: data.id,
+            tag_id,
+          })),
+        );
+      }
     };
 
     if (generatedColors.length > 0) {
       for (const c of generatedColors) {
-        await insertOne(c.hex);
+        await insertOne(c.hex, c.tag);
       }
     } else {
       await insertOne(hex);
