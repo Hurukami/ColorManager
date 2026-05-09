@@ -7,10 +7,10 @@
 
 今回のアプリは👇がポイント
 
-* 色は「用途」で管理
-* プロジェクト単位で独立
-* 色は派生関係を持つ
-* 表示形式（RGB / HSV）は変換可能
+- 色は「用途」で管理
+- プロジェクト単位で独立
+- 色は派生関係を持つ
+- 表示形式（RGB / HSV）は変換可能
 
 👉 なので
 
@@ -64,9 +64,9 @@ colors
 
 👉 ポイント
 
-* RGBを「正」とする（ブレない）
-* HSV/HEXは計算できるが保存してOK（高速化）
-* base_color_idでツリー構造
+- RGBを「正」とする（ブレない）
+- HSV/HEXは計算できるが保存してOK（高速化）
+- base_color_idでツリー構造
 
 ---
 
@@ -125,10 +125,10 @@ colors（自己参照）
 
 例：
 
-* 肌
-* 影
-* ハイライト
-* 背景
+- 肌
+- 影
+- ハイライト
+- 背景
 
 👉 色自体に意味を持たせすぎない
 
@@ -148,8 +148,8 @@ colors（自己参照）
 
 ## ③ プロジェクト完全分離
 
-* タグも色も共有しない
-* データ汚染防止
+- タグも色も共有しない
+- データ汚染防止
 
 ---
 
@@ -190,9 +190,10 @@ color_groups
 - id
 - project_id
 - name
+- sort_order
 ```
 
----
+👉 プロジェクトごとにグループを作成
 
 ## ④ ユーザー対応（将来）
 
@@ -231,10 +232,10 @@ projects
 
 最低限：
 
-* projects
-* colors
-* tags
-* color_tags
+- projects
+- colors
+- tags
+- color_tags
 
 👉 これでプロダクト成立
 
@@ -254,7 +255,7 @@ projects
 希望あれば👇
 👉 「そのまま使えるSQL」書きます
 👉 「Supabaseにコピペで動く構成」も作れます
-いい判断です。今回のアプリなら **Supabase の無料枠で十分成立します。
+いい判断です。今回のアプリなら \*\*Supabase の無料枠で十分成立します。
 しかも「PostgreSQLそのまま」なので、さっきの設計をほぼそのまま使えます。
 
 ---
@@ -263,18 +264,18 @@ projects
 
 ## 🟢 Freeプラン
 
-* DB：500MB
-* ストレージ：1GB
-* 月間アクティブユーザー：50,000
-* API：自動生成
+- DB：500MB
+- ストレージ：1GB
+- 月間アクティブユーザー：50,000
+- API：自動生成
 
 👉 あなたの用途
 👉 **まず確実に無料で収まる**
 
 理由：
 
-* 色データは軽い（数万件でも余裕）
-* 画像保存しない限り容量ほぼ使わない
+- 色データは軽い（数万件でも余裕）
+- 画像保存しない限り容量ほぼ使わない
 
 ---
 
@@ -419,14 +420,12 @@ USING (true);
 # ⚡ フロントからの使い方（超簡単）
 
 ```javascript
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(URL, KEY)
+const supabase = createClient(URL, KEY);
 
 // 色取得
-const { data } = await supabase
-  .from('colors')
-  .select('*')
+const { data } = await supabase.from("colors").select("*");
 ```
 
 👉 **これだけでAPI完成**
@@ -435,10 +434,10 @@ const { data } = await supabase
 
 # 🚀 Supabaseの強み（今回のアプリに刺さる）
 
-* PostgreSQLそのまま（移行しやすい）
-* API自動生成
-* リアルタイム更新（後で使える）
-* 無料で十分戦える
+- PostgreSQLそのまま（移行しやすい）
+- API自動生成
+- リアルタイム更新（後で使える）
+- 無料で十分戦える
 
 ---
 
